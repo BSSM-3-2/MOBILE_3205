@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface State {
     hasError: boolean;
@@ -19,15 +19,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
     // 렌더 직전에 호출 — state만 업데이트, 부수 효과 금지
     static getDerivedStateFromError(error: Error): State {
-        // TODO 1-1. hasError: true, error를 담은 State 객체를 반환하세요.
-        throw new Error('Not implemented');
+        return { hasError: true, error };
     }
 
     // 렌더 완료 후 호출 — 부수 효과(로깅, 네트워크) 허용
     componentDidCatch(error: Error, info: React.ErrorInfo) {
         console.error('[ErrorBoundary] caught:', error.message);
         console.error('[ErrorBoundary] stack:', info.componentStack);
-        // TODO 1-2. this.props.onError?.(error, info)를 호출하세요.
+        this.props.onError?.(error, info);
     }
 
     private handleReset = () => {
@@ -36,8 +35,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
     render() {
         if (this.state.hasError) {
-            // TODO 1-3. props.fallback이 있으면 fallback을, 없으면 DefaultFallback을 렌더링하세요.
-            //           DefaultFallback에는 error={this.state.error} onReset={this.handleReset}을 전달합니다.
+            if (this.props.fallback) {
+                return this.props.fallback;
+            }
+            return (
+                <DefaultFallback
+                    error={this.state.error}
+                    onReset={this.handleReset}
+                />
+            );
         }
         return this.props.children;
     }
@@ -50,13 +56,19 @@ function DefaultFallback({
     error: Error | null;
     onReset: () => void;
 }) {
+    const errorCode = error?.message?.slice(0, 24) ?? 'UNKNOWN';
+
     return (
         <View style={styles.container}>
-            {/* TODO 1-4. 아래 3가지를 구현하세요.
-                  - 에러 메시지 텍스트 (기술적 내용을 그대로 노출하지 말 것)
-                  - "다시 시도" Pressable 버튼 (onPress: onReset)
-                  - 에러 코드 텍스트 (error?.message?.slice(0, 24) ?? 'UNKNOWN')
-            */}
+            <Text style={styles.title}>문제가 발생했어요</Text>
+            <Text style={styles.description}>
+                잠시 후 다시 시도해주세요. 문제가 반복되면 관리자에게
+                문의해주세요.
+            </Text>
+            <Pressable style={styles.button} onPress={onReset}>
+                <Text style={styles.buttonText}>다시 시도</Text>
+            </Pressable>
+            <Text style={styles.code}>에러 코드: {errorCode}</Text>
         </View>
     );
 }
@@ -70,5 +82,32 @@ const styles = StyleSheet.create({
         gap: 12,
         backgroundColor: '#fff',
     },
-    // TODO 1-4. 필요한 스타일을 추가하세요.
+    title: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#101828',
+    },
+    description: {
+        fontSize: 14,
+        textAlign: 'center',
+        color: '#667085',
+        lineHeight: 20,
+    },
+    button: {
+        marginTop: 8,
+        backgroundColor: '#111827',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 10,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    code: {
+        marginTop: 4,
+        fontSize: 12,
+        color: '#98A2B3',
+    },
 });
