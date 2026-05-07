@@ -18,6 +18,7 @@ import { StyleSheet } from 'react-native';
 import { useAuthStore } from '@/store/auth-store';
 import { usePushRegistration } from '@/hooks/use-push-registration';
 import * as Notifications from 'expo-notifications';
+import { ErrorBoundary } from '@components/ErrorBoundary';
 
 Sentry.init({
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -96,58 +97,62 @@ export default function RootLayout() {
             <ThemeProvider
                 value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
             >
-                {/* TODO 2. 전역 ErrorBoundary로 AuthGuard와 Stack 전체를 감싸세요.
-                    onError: err => console.error('[GlobalBoundary]', err.message) */}
-                <AuthGuard />
-                <Stack>
-                    <Stack.Screen
-                        name='(tabs)'
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name='create'
-                        options={{
-                            headerShown: false,
-                            animation: 'slide_from_right',
-                        }}
-                    />
-                    <Stack.Screen
-                        name='signup'
-                        options={{
-                            headerShown: true,
-                            headerTitle: () => (
-                                <ThemedText style={styles.default}>
-                                    회원가입
-                                </ThemedText>
-                            ),
-                            headerBackTitle: '뒤로',
-                        }}
-                    />
-                    <Stack.Screen
-                        name='login'
-                        options={{
-                            headerShown: true,
-                            headerTitle: () => (
-                                <ThemedText style={styles.default}>
-                                    로그인
-                                </ThemedText>
-                            ),
-                            headerBackTitle: '뒤로',
-                        }}
-                    />
-                    <Stack.Screen
-                        name='profile/[id]'
-                        options={{
-                            headerShown: true,
-                            headerTitle: () => (
-                                <ThemedText style={styles.default}>
-                                    사용자 프로필
-                                </ThemedText>
-                            ),
-                            headerBackTitle: '홈으로',
-                        }}
-                    />
-                </Stack>
+                <ErrorBoundary
+                    onError={err =>
+                        console.error('[GlobalBoundary]', err.message)
+                    }
+                >
+                    <AuthGuard />
+                    <Stack>
+                        <Stack.Screen
+                            name='(tabs)'
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name='create'
+                            options={{
+                                headerShown: false,
+                                animation: 'slide_from_right',
+                            }}
+                        />
+                        <Stack.Screen
+                            name='signup'
+                            options={{
+                                headerShown: true,
+                                headerTitle: () => (
+                                    <ThemedText style={styles.default}>
+                                        회원가입
+                                    </ThemedText>
+                                ),
+                                headerBackTitle: '뒤로',
+                            }}
+                        />
+                        <Stack.Screen
+                            name='login'
+                            options={{
+                                headerShown: true,
+                                headerTitle: () => (
+                                    <ThemedText style={styles.default}>
+                                        로그인
+                                    </ThemedText>
+                                ),
+                                headerBackTitle: '뒤로',
+                            }}
+                        />
+                        <Stack.Screen
+                            name='profile/[id]'
+                            options={{
+                                headerShown: true,
+                                headerTitle: () => (
+                                    <ThemedText style={styles.default}>
+                                        사용자 프로필
+                                    </ThemedText>
+                                ),
+                                headerBackTitle: '홈으로',
+                            }}
+                        />
+                    </Stack>
+                </ErrorBoundary>
                 <StatusBar style='auto' />
             </ThemeProvider>
         </GestureHandlerRootView>
