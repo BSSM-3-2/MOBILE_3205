@@ -43,27 +43,52 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // 앱 시작 시 한 번 호출 — 저장된 토큰으로 세션 복원
     bootstrap: async () => {
         try {
-            const token = await SecureStore.getItemAsync(TOKEN_KEY);
+            const [storedAccessToken, storedRefreshToken] = await Promise.all([
+                SecureStore.getItemAsync(TOKEN_KEY),
+                SecureStore.getItemAsync(REFRESH_KEY),
+            ]);
 
-            if (!token) {
+            if (!storedAccessToken && !storedRefreshToken) {
                 set({ status: 'guest' });
                 return;
             }
 
-            // store에 임시 세팅해야 apiClient interceptor가 Bearer 헤더를 붙임
-            set({ accessToken: token });
+            if (storedAccessToken) {
+                // store에 임시 세팅해야 apiClient interceptor가 Bearer 헤더를 붙임
+                set({
+                    accessToken: storedAccessToken,
+                    refreshToken: storedRefreshToken,
+                });
 
-            // 저장된 토큰이 있다는 것과 유효하다는 것은 다르다
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { getMe } = require('@/api/users');
-            const user = await getMe();
+                try {
+                    // 저장된 토큰이 있다는 것과 유효하다는 것은 다르다
+                    // eslint-disable-next-line @typescript-eslint/no-require-imports
+                    const { getMe } = require('@/api/users');
+                    const user = await getMe();
 
-            const storedRefreshToken =
-                await SecureStore.getItemAsync(REFRESH_KEY);
+                    set({
+                        user,
+                        accessToken: storedAccessToken,
+                        refreshToken: storedRefreshToken,
+                        status: 'authenticated',
+                    });
+                    return;
+                } catch {
+                    // access token이 만료된 경우 아래 refresh 흐름으로 복구
+                }
+            }
+
+            if (!storedRefreshToken) {
+                throw new Error('No refresh token');
+            }
+
+            const refreshed = await authRefresh(storedRefreshToken);
+            await SecureStore.setItemAsync(TOKEN_KEY, refreshed.accessToken);
+            await SecureStore.setItemAsync(REFRESH_KEY, refreshed.refreshToken);
             set({
-                user,
-                accessToken: token,
-                refreshToken: storedRefreshToken,
+                user: refreshed.user,
+                accessToken: refreshed.accessToken,
+                refreshToken: refreshed.refreshToken,
                 status: 'authenticated',
             });
         } catch {

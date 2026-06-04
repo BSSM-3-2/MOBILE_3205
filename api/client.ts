@@ -12,6 +12,18 @@ const apiClient = axios.create({
     },
 });
 
+const BYPASS_REFRESH_PATHS = [
+    '/auth/login',
+    '/auth/signup',
+    '/auth/refresh',
+    '/auth/logout',
+];
+
+function shouldBypassRefresh(url?: string) {
+    if (!url) return false;
+    return BYPASS_REFRESH_PATHS.some(path => url.includes(path));
+}
+
 // Request Interceptor
 // 모든 요청 전에 실행 — 토큰 주입
 apiClient.interceptors.request.use(
@@ -48,6 +60,7 @@ apiClient.interceptors.response.use(
     async error => {
         const status = error.response?.status;
         const originalConfig = error.config;
+        const requestUrl = originalConfig?.url as string | undefined;
 
         if (status === 404) {
             console.warn(
@@ -58,6 +71,10 @@ apiClient.interceptors.response.use(
         }
 
         if (status === 401) {
+            if (shouldBypassRefresh(requestUrl)) {
+                return Promise.reject(error);
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             const { useAuthStore } = require('@/store/auth-store');
             const store = useAuthStore.getState();
