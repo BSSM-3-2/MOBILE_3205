@@ -1,50 +1,46 @@
-# Welcome to your Expo app 👋
+# Expo + EAS 실습
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+이 프로젝트는 EAS 프로젝트 ID `5de38dbd-37c2-4e2d-a65b-1f56da1c6960`에 연결되도록 설정되어 있습니다.
 
-## Get started
+## 실습 1: EAS 환경 변수로 SENTRY_DSN 관리
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+로컬 `.env`는 다음 키를 사용합니다.
 
 ```bash
-npm run reset-project
+SENTRY_DSN=...
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+EAS 서버 환경 변수 등록:
 
-## Learn more
+```bash
+eas env:create --name SENTRY_DSN --value "https://xxx@oxx.ingest.sentry.io/xxxx" --environment production
+eas env:create --name SENTRY_DSN --value "https://xxx@oxx.ingest.sentry.io/xxxx" --environment preview
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+앱은 `Constants.expoConfig?.extra?.sentryDsn`으로 DSN을 읽습니다.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 실습 2: runtimeVersion & updates 설정
 
-## Join the community
+`app.config.ts`에 다음이 설정되어 있습니다.
 
-Join our community of developers creating universal apps.
+- `runtimeVersion.policy = "appVersion"`
+- `updates.url = "https://u.expo.dev/5de38dbd-37c2-4e2d-a65b-1f56da1c6960"`
+- `updates.checkAutomatically = "ON_LOAD"`
+- `updates.fallbackToCacheTimeout = 0`
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 실습 3: OTA 업데이트 발행 & 롤백
+
+스크립트:
+
+```bash
+yarn ota:publish:production
+yarn ota:publish:preview
+yarn ota:rollback:production
+```
+
+직접 명령어로 실행할 때:
+
+```bash
+eas update --channel production --environment production --message "hotfix: ..."
+eas update:republish --channel production --message "rollback: ..."
+```
