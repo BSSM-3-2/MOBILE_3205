@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemedText } from '@components/themed-text';
@@ -20,11 +21,13 @@ import { usePushRegistration } from '@/hooks/use-push-registration';
 import * as Notifications from 'expo-notifications';
 import { ErrorBoundary } from '@components/ErrorBoundary';
 
+const sentryDsn = Constants.expoConfig?.extra?.sentryDsn as string | undefined;
+
 Sentry.init({
-    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+    dsn: sentryDsn,
     environment: __DEV__ ? 'dev' : 'prod',
     tracesSampleRate: 0.1,
-    enabled: !__DEV__,
+    enabled: !__DEV__ && Boolean(sentryDsn),
 });
 
 // 포그라운드에서도 알림 배너가 보이도록 설정

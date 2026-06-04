@@ -1,10 +1,22 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+const EAS_PROJECT_ID = '5de38dbd-37c2-4e2d-a65b-1f56da1c6960';
+const EAS_UPDATE_URL = `https://u.expo.dev/${EAS_PROJECT_ID}`;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
     name: 'MyFeed',
     slug: 'MyFeed',
     version: '1.0.0',
+    runtimeVersion: {
+        policy: 'appVersion',
+    },
+    updates: {
+        url: EAS_UPDATE_URL,
+        enabled: true,
+        fallbackToCacheTimeout: 0,
+        checkAutomatically: 'ON_LOAD',
+    },
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'myfeed',
@@ -63,6 +75,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         reactCompiler: true,
     },
     extra: {
+        ...config.extra,
         apiUrl: process.env.EXPO_PUBLIC_API_URL,
+        sentryDsn: process.env.SENTRY_DSN,
+        eas: {
+            projectId: EAS_PROJECT_ID,
+        },
     },
 });

@@ -16,7 +16,10 @@
         "compile": "yarn tsc",
         "postinstall": "yarn husky",
         "pre-commit": "if [ -e .git ]; then yarn run lint-check && yarn lint-staged && yarn run compile; else echo 'pre-commit was not executed cause cannot find .git'; fi",
-        "lint": "expo lint"
+        "lint": "expo lint",
+        "ota:publish:production": "eas update --channel production --environment production",
+        "ota:publish:preview": "eas update --channel preview --environment preview",
+        "ota:rollback:production": "eas update:republish --channel production"
     },
     "lint-staged": {
         "**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,md}": [
