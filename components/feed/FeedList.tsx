@@ -1,10 +1,4 @@
-import {
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated, {
     useAnimatedScrollHandler,
     SharedValue,
